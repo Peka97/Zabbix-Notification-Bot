@@ -9,7 +9,6 @@ from utils.cache import load_from_cache
 
 
 def render_inline_page(keyboard: InlineKeyboardBuilder, hostgroups: list, page_num: int, cache: dict) -> InlineKeyboardBuilder:
-    print(cache)
     for idx, hostgroup in enumerate(hostgroups):
         text = f'👥{hostgroup['name']}{' ✅' if hostgroup['groupid'] in cache else ''}'
             

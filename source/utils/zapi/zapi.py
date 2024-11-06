@@ -3,10 +3,12 @@ import asyncio
 import json
 import requests
 import requests.cookies
+from pprint import pprint
 
 import aiohttp.client_exceptions
 import requests.auth
 
+from utils.zapi.tools import Output
 from config import CURRENT_CONFIG
 
 
@@ -17,6 +19,7 @@ class ZabbixAPI:
     _auth_postfix = '/index_http.php'
     _api_postfix = '/api_jsonrpc.php'
     _graph_postfix = '/chart.php'
+    output = Output()
     
     def __init__(self):
         self._url = f"http://{CURRENT_CONFIG.zabbix_api_internal_ip}"
@@ -88,4 +91,33 @@ class ZabbixAPI:
             ) as resp:
                 if resp.ok:
                     return resp.json().get('result')
+                raise requests.exceptions.ConnectionError(f'Error get result from {url}.')
+    
+    def get_hosts_by_hostgroups_id(self, ids: list):
+        url = self._url + self._api_postfix
+        data = {
+            "jsonrpc": "2.0",
+            "method": "host.get",
+            "params": {
+                "filter": {"groupids": ids},
+                "output": ["hostid", "host", "name"],
+                "selectInterfaces": ["ip", "port", "dns"]
+            },
+            "id": 1
+        }
+        with requests.Session() as session:
+            self._get_cookies(session)
+            with session.get(
+                url,
+                headers=self._api_headers,
+                data=json.dumps(data)
+            ) as resp:
+                if resp.ok:
+                    data = resp.json().get('result')
+                    
+                    for item in data:
+                        interfaces = item.pop('interfaces')
+                        item.update(*interfaces)
+                    
+                    return data
                 raise requests.exceptions.ConnectionError(f'Error get result from {url}.')

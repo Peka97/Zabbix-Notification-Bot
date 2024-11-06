@@ -9,7 +9,7 @@ def get_start_keyboard():
     keyboard.row(
         InlineKeyboardButton(
             text='Инвентаризация по группам',
-            callback_data=InventoryActionCallbackData(action='inventory_group', page_num=1, type='render').pack()
+            callback_data=InventoryActionCallbackData(action='inventory_hostgroups', page_num=1, type='render').pack()
             )
     )
     return keyboard.as_markup()

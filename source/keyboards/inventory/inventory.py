@@ -6,7 +6,7 @@ from utils.zapi.zapi import ZabbixAPI
 from keyboards.inventory.tools import render_inline_page, load_from_cache
 
 
-def get_inventory_group_keyboard(user_id: int, page_num: int = 1):
+def get_inventory_hostgroup_keyboard(user_id: int, page_num: int = 1):
     cache = load_from_cache(user_id, 'hostgroups')
     hostgroups = ZabbixAPI().get_all_hostgroups()
     keyboard = InlineKeyboardBuilder()
