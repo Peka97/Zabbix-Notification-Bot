@@ -164,3 +164,4 @@ cython_debug/
 # Custom
 config.py
 source/misc/cache/*
+.vscode
