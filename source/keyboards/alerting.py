@@ -3,12 +3,15 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from config import CURRENT_CONFIG
 
+
 def get_problem_keyboard(settings):
     url = f"https://{CURRENT_CONFIG.zabbix_api_external_ip}"
     item_id = settings["itemid"]
     event_id = settings["eventid"]
     trigger_id = settings["triggerid"]
-    period = settings.get("graphperiod") # or CURRENT_CONFIG.period
+    period = settings.get("graphperiod") if settings.get(
+        "graphperiod") else CURRENT_CONFIG.period
+
     keyboard = InlineKeyboardBuilder()
     keyboard.row(
         InlineKeyboardButton(
@@ -16,22 +19,23 @@ def get_problem_keyboard(settings):
             url=f"{url}/history.php?action=showgraph&itemids[]={item_id}&from=now-{period}",
         ),
         InlineKeyboardButton(
-            text="Детали 📋",
+            text="Детали 🔍",
             url=f"{url}/tr_events.php?triggerid={trigger_id}&eventid={event_id}",
         ),
     )
-    
+
     keyboard.row(
+        # InlineKeyboardButton(
+        #     text="Ticket 🗳",
+        #     url=f"https://itsm/ticket-console-link",
+        # ),
         InlineKeyboardButton(
-            text="Ticket 🗳",
-            url=f"https://itsm/ticket-console-link",
-        ),
-        InlineKeyboardButton(
-            text="Подтвердить 📌",
+            text="Подтвердить ✍️",
             callback_data="confirm_problem"
         )
     )
     return keyboard.as_markup()
+
 
 def get_confirm_problem_keyboard():
     pass

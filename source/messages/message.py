@@ -14,12 +14,18 @@ class BaseMessage:
         self.send_to = send_to
         self.subjuct = subject
         self.settings = settings
-        self.severity_emoji = emojies.get(settings["severity"])
-    
+        # if settings.get("severity"):
+        #     self.severity_emoji = emojies.get(settings['severity'])
+
     def render_text(self):
-        pattern = re.compile(r'- Критичность: ')
-        self.text = self.subjuct + self.text.replace(
-            pattern.search(self.text).group(),
-            f"{pattern.search(self.text).group()}{self.severity_emoji} "
-            ) + f'\n#item\_{self.settings['itemid']} #event\_{self.settings['eventid']} #trigger\_{self.settings['triggerid']} #period\_43200'
-        return self.text
+        tags = f'\n#item\\_{self.settings.get("itemid")} #event\\_{self.settings.get("eventid")} #trigger\\_{self.settings.get("triggerid")} #period\\_43200'
+
+        text_sample = f"\
+        {self.subjuct}\
+        \n\
+        {self.text}\
+        \n\
+        {tags}\
+        "
+
+        return text_sample

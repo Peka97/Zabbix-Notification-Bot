@@ -6,13 +6,16 @@ import requests.cookies
 from pprint import pprint
 
 import aiohttp.client_exceptions
+from bs4 import BeautifulSoup
 import requests.auth
 
 from utils.zapi.tools import Output
+from utils.logger import get_bot_logger
 from config import CURRENT_CONFIG
 
 
 config = CURRENT_CONFIG
+logger = get_bot_logger()
 
 class ZabbixAPI:
     _api_headers = {"Content-Type": "application/json"}
@@ -84,6 +87,7 @@ class ZabbixAPI:
         }
         with requests.Session() as session:
             self._get_cookies(session)
+            
             with session.get(
                 url,
                 headers=self._api_headers,
@@ -107,6 +111,7 @@ class ZabbixAPI:
         }
         with requests.Session() as session:
             self._get_cookies(session)
+            
             with session.get(
                 url,
                 headers=self._api_headers,
@@ -121,3 +126,36 @@ class ZabbixAPI:
                     
                     return data
                 raise requests.exceptions.ConnectionError(f'Error get result from {url}.')
+    
+    def get_availability_report(self):
+        url = self._url + f"/report2.php?mode=1&from={config.availability_report_pediod}&to=now&filter_groupid=0&filter_templateid=10564&tpl_triggerid=23176&hostgroupid=0&filter_set=1"
+
+        with requests.Session() as session:
+            self._get_cookies(session)
+            
+            with session.get(url) as resp:
+                if resp.ok:
+                    soup = BeautifulSoup(resp.content, "html.parser")
+                else:
+                    logger.error(resp.status_code)
+                    return
+
+        table = soup.find("table", attrs={"class": "list-table"})
+
+        t_headers_row = table.find("thead").find_all("th")
+        t_headers_row = [
+            head.string 
+            for head in t_headers_row 
+            if head.string in ('Host', 'Name', 'Ok')
+        ]
+
+        t_lines_rows = [row.find_all("td") for row in table.find("tbody")]
+
+        for line_idx, line in enumerate(t_lines_rows[:]):
+            line.pop(2)
+            line.pop(-1)
+        
+            for el_idx, el in enumerate(line[:]):
+                t_lines_rows[line_idx][el_idx] = el.string
+
+        return [t_headers_row, *t_lines_rows]
