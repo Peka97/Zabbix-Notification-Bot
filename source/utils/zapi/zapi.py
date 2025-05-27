@@ -19,6 +19,7 @@ logger = get_bot_logger()
 
 
 class ZabbixAPI:
+    _url = f"http://{CURRENT_CONFIG.zabbix_api_internal_ip}"
     _api_headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {CURRENT_CONFIG.ZABBIX_API_TOKEN}"
@@ -28,10 +29,10 @@ class ZabbixAPI:
     _graph_postfix = '/chart.php'
     output = Output()
 
-    def __init__(self):
-        self._url = f"http://{CURRENT_CONFIG.zabbix_api_internal_ip}"
-        self._login = CURRENT_CONFIG.zabbix_bot_login
-        self._password = CURRENT_CONFIG.zabbix_bot_pass
+    # def __init__(self):
+    #     self._url = f"http://{CURRENT_CONFIG.zabbix_api_internal_ip}"
+    #     self._login = CURRENT_CONFIG.zabbix_bot_login
+    #     self._password = CURRENT_CONFIG.zabbix_bot_pass
 
     def _get_cookies(self, session: requests.Session):
         with session.post(
@@ -112,10 +113,9 @@ class ZabbixAPI:
                 headers=self._api_headers,
                 data=json.dumps(data)
             ) as resp:
-                if resp.ok:
+                if resp.ok and resp.json().get('result'):
                     return resp.json().get('result')
-                raise requests.exceptions.ConnectionError(
-                    f'Error get result from {url}.')
+                raise requests.exceptions.ConnectionError(resp.json())
 
     def get_hosts_by_hostgroups_id(self, ids: list):
         url = self._url + self._api_postfix
@@ -140,9 +140,10 @@ class ZabbixAPI:
                 if resp.ok:
                     data = resp.json().get('result')
 
-                    for item in data:
-                        interfaces = item.pop('interfaces')
-                        item.update(*interfaces)
+                    # for item in data:
+                    #     # print(item)
+                    #     interfaces = item.pop('interfaces')
+                    #     item.update(*interfaces)
 
                     return data
                 raise requests.exceptions.ConnectionError(
