@@ -19,7 +19,10 @@ logger = get_bot_logger()
 
 
 class ZabbixAPI:
-    _api_headers = {"Content-Type": "application/json"}
+    _api_headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {CURRENT_CONFIG.ZABBIX_API_TOKEN}"
+    }
     _auth_postfix = '/index_http.php'
     _api_postfix = '/api_jsonrpc.php'
     _graph_postfix = '/chart.php'
@@ -31,24 +34,36 @@ class ZabbixAPI:
         self._password = CURRENT_CONFIG.zabbix_bot_pass
 
     def _get_cookies(self, session: requests.Session):
-        auth = requests.auth.HTTPBasicAuth(
-            self._login, self._password
-        )
         with session.post(
             self._url + self._auth_postfix,
-            auth=auth
+            headers=self._api_headers
         ) as resp:
             if resp.ok:
                 session.cookies.set(
-                    'zbx_session', resp.cookies.get('zbx_session'))
+                    'zbx_session', resp.cookies.get('zbx_session')
+                )
                 return session
             raise requests.exceptions.ConnectionError(
-                "Wrong login or password.")
+                "Wrong token auth.")
+
+        # auth = requests.auth.HTTPBasicAuth(
+        #     self._login, self._password
+        # )
+        # with session.post(
+        #     self._url + self._auth_postfix,
+        #     auth=auth
+        # ) as resp:
+        #     if resp.ok:
+        #         session.cookies.set(
+        #             'zbx_session', resp.cookies.get('zbx_session'))
+        #         return session
+        #     raise requests.exceptions.ConnectionError(
+        #         "Wrong login or password.")
 
     def get_graph(self, settings: dict) -> tuple[bytes, str, int]:
         url = self._url + self._graph_postfix
         headers = {
-            "Content-Type": "image/png"
+            "Content-Type": "image/png",
         }
         params = {
             "from": f"now-{config.period}",
