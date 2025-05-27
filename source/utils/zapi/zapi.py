@@ -35,7 +35,7 @@ class ZabbixAPI:
 
     def _get_cookies(self, session: requests.Session):
         with session.post(
-            self._url + self._auth_postfix,
+            self._url + self._api_postfix,
             headers=self._api_headers
         ) as resp:
             if resp.ok:
